@@ -1,0 +1,40 @@
+version: "3.1"
+services:
+  # Add mongodb
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27027:27017"
+    networks:
+      - webnet
+  # Add web services
+  web-service:
+    image: kbonis/web-service-sample:latest
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 50M
+    ports:
+      - "8889:8880"
+    networks:
+      - webnet
+    depends_on:
+      - mongo
+  # Add Visualizer
+  visualizer:
+    image: dockersamples/visualizer:stable
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    ports:
+      - "8080:8080"
+    networks:
+      - webnet
+networks:
+  webnet:
